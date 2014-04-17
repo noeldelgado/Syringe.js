@@ -1,6 +1,5 @@
-/* Syringe.js -v 0.1.0 */
 
-window.Syringe = {
+Syringe = {
 
     config : {
         prefixedProperties : null
@@ -51,7 +50,7 @@ window.Syringe = {
                         if (self.config.prefixedProperties) {
                             CSString += self._getPrefixedRules(selector, obj[property]);
                         } else {
-                            CSString += this._formattedRule(selector, obj[property]);
+                            CSString += self._formattedRule(selector, obj[property]);
                         }
                     }
                 }
@@ -61,18 +60,20 @@ window.Syringe = {
         iterate(options);
 
         self._styleElement.innerHTML += CSString;
+
+        return CSString;
     },
 
     _formattedRule : function _formattedRule(selector, value) {
-        return "\t" + selector + ":" + value + ";\n";
+        return selector + ":" + value + ";";
     },
 
     _openingBracket : function _openingBracket() {
-        return "{\n\t";
+        return "{";
     },
 
     _closingBracket : function _closingBracket() {
-        return "\t}\n";
+        return "}";
     },
 
     _toDash : function _toDash(string) {
