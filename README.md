@@ -1,0 +1,4 @@
+Syringe.js
+==========
+
+Injects CSS
