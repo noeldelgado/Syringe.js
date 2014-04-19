@@ -7,8 +7,8 @@ module.exports = function(grunt) {
 
         watch: {
             all: {
-                files: ["examples/**/*.*", "src/**/*.*"],
-                tasks: [],
+                files: ["_/examples/**/*.*", "src/**/*.*"],
+                tasks: ['mocha_phantomjs'],
                 options: {
                     livereload: true
                 }
@@ -17,7 +17,7 @@ module.exports = function(grunt) {
 
         uglify: {
             options: {
-                banner: '/* <%= pkg.name %> -v <%= pkg.version %> */\n',
+                banner: '/* <%= pkg.name %> -v <%= pkg.version %> - <%= pkg.license %> */\n',
             },
             lib: {
                 src: 'src/syringe.js',

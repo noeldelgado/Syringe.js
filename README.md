@@ -1,11 +1,17 @@
 # Syringe.js
 
-Injects CSS...
+* Injects CSS at runtime
+* Expects an object as input
+* Properties can be Strings or camelCased
+* Supports JSON
+* Media Queries
+* @keyframes
+* Prefixes (optional)
 
 ## Usage Examples
 
 ## Basic
-```
+```js
 var props = {
     body: {
         background: '#222',
@@ -20,8 +26,44 @@ var props = {
 Syringe.inject(props);
 ```
 
-## Media Queries
+## Pseudo-elements, pseudo-classes
+```js
+var props = {
+    'a': {
+        color: "lime",
+        transition: 'color 400ms'
+    },
+    'a:hover': {
+        color: "red"
+    },
+    'a:after': {
+        display: 'inline-block',
+        content: '"[/]"',
+        marginLeft: "5px"
+    }
+};
+
+/* Strings support:
+    Note that on the pseudo-element example,
+    any expected 'String' should be double quoted
+*/
 ```
+
+## JSON Format
+```js
+var props = JSON.stringify({
+    "body": {
+        "color": "red"
+    },
+    "body:after": {
+        "content": "'hello'"
+    }
+});
+Syringe.inject(JSON.parse(props));
+```
+
+## Media Queries
+```js
 var props = {
     "@media screen" : {
         "*" : {
@@ -38,7 +80,7 @@ Syringe.inject(props);
 ```
 
 ## @keyframes
-```
+```js
 var props = {
     '@keyframes anim-test': {
         from: {
@@ -69,7 +111,7 @@ Syringe.inject(props);
 
 Non-support by default, however you can define what properties and which prefixes to apply, just extend `Syringe.config.prefixedProperties`  before injection:
 
-```
+```js
 Syringe.config.prefixedProperties = {
     'transform'     : ['webkit', 'moz', 'ms', 'o'],
     'perspective'   : ['webkit'],
@@ -78,7 +120,7 @@ Syringe.config.prefixedProperties = {
 };
 ```
 
-```
+```js
 var props = {
     'body': {
         perspective: '1000px',
@@ -95,7 +137,7 @@ Syringe.inject(props);
 
 That will produce:
 
-```
+```css
 body{
     -webkit-perspective: 1000px;
     perspective: 1000px;

@@ -118,6 +118,7 @@ describe("Keyframes", function() {
 })
 
 describe("Media Queries", function() {
+    var props, result
     props = {
         "@media screen" : {
             "*" : {
@@ -136,3 +137,44 @@ describe("Media Queries", function() {
         expect(result).to.equal(r)
     })
 });
+
+describe("Pseudo Class + Pseudo Classes", function() {
+    Syringe.config.prefixedProperties = {};
+
+    var props, result
+    props = {
+        'a': {
+            color: "lime",
+            transition: 'color 400ms'
+        },
+        'a:hover': {
+            color: "red"
+        },
+        'a:after': {
+            display: 'inline-block',
+            content: '"[/]"',
+            marginLeft: "5px"
+        }
+    }
+    result = Syringe.inject(props)
+    it("should support pseudo elements and pseudo classes", function() {
+        r = 'a{color:lime;transition:color 400ms;}a:hover{color:red;}a:after{display:inline-block;content:"[/]";margin-left:5px;}';
+        expect(result).to.equal(r)
+    })
+})
+
+describe("JSON Format", function() {
+    var props, result
+    props = JSON.stringify({
+        "body": {
+            "color": "red"
+        },
+        "body:after": {
+            "content": "'hello'"
+        }
+    })
+    result = Syringe.inject(JSON.parse(props))
+    it("should support JSON inout", function() {
+        expect(result).to.equal("body{color:red;}body:after{content:'hello';}")
+    })
+})
