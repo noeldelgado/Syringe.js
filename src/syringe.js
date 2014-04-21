@@ -65,7 +65,8 @@ Syringe = {
     },
 
     _formattedRule : function _formattedRule(selector, value) {
-        return selector + ":" + value + ";";
+        var rule = (selector === "@import") ? (selector + " " + value) : (selector + ":" + value);
+        return rule + ";";
     },
 
     _openingBracket : function _openingBracket() {

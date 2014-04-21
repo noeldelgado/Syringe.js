@@ -3,16 +3,20 @@
   "version": "0.1.0",
   "description": "Injects CSS via JS",
   "main": "Gruntfile.js",
-  "author": "Noel Delgado (pixelia.me@gmail.com)",
-  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/noeldelgado/Syringe.js"
+    "url": "https://github.com/noeldelgado/Syringe.git"
   },
   "keywords": [
     "injection",
     "css"
   ],
+  "author": "Noel Delgado (pixelia.me@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/noeldelgado/Syringe/issues"
+  },
+  "homepage": "https://github.com/noeldelgado/Syringe",
   "dependencies": {
     "mocha": "*",
     "chai": "*"

@@ -1,4 +1,8 @@
 
+function getStyle(el, property) {
+    return window.getComputedStyle(el, null).getPropertyValue(property);
+}
+
 describe("Output", function() {
     var props, result
     props = {
@@ -68,7 +72,7 @@ describe("Prefixes", function() {
     })
 });
 
-describe("Nested Levels Support", function() {
+describe("Keyframes (from/to)", function() {
     Syringe.config.prefixedProperties = {};
 
     var props, result
@@ -87,13 +91,13 @@ describe("Nested Levels Support", function() {
         }
     };
     result = Syringe.inject(props)
-    it("keyframes example", function() {
+    it("keyframes from to example", function() {
         var r = "@keyframes atest{from{color:red;box-shadow:0 0 20px red;transform:translate3d(0, -20px, 0);}to{color:lime;box-shadow:0 0 20px lime;transform:translate3d(0, 20px, -100px);}}"
         expect(result).to.equal(r)
     })
 });
 
-describe("Keyframes", function() {
+describe("Keyframes (percantages)", function() {
     Syringe.config.prefixedProperties = {};
 
     var props, result

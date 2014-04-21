@@ -1,9 +1,8 @@
 # Syringe.js
 
 * Injects CSS at runtime
-* Expects an object as input
-* Properties can be Strings or camelCased
-* Supports JSON
+* Supports JSON format
+* @import at-rule
 * Media Queries
 * @keyframes
 * Prefixes (optional)
@@ -47,6 +46,17 @@ var props = {
     Note that on the pseudo-element example,
     any expected 'String' should be double quoted
 */
+```
+
+## @import
+As the [spec](http://www.w3.org/TR/CSS2/cascade.html#at-import) says:
+> ...any @import rules must precede all other rules (except the @charset rule, if present)...
+
+```js
+var props = {
+    "@import": "url(style2.css)"
+};
+Syringe.inject(props);
 ```
 
 ## JSON Format
