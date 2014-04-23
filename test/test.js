@@ -77,7 +77,7 @@ describe("Keyframes (from/to)", function() {
 
     var props, result
     props = {
-        '@keyframes atest': {
+        '@-webkit-keyframes atest': {
             from: {
                 color: 'red',
                 boxShadow: "0 0 20px red",
@@ -92,7 +92,7 @@ describe("Keyframes (from/to)", function() {
     };
     result = Syringe.inject(props)
     it("keyframes from to example", function() {
-        var r = "@keyframes atest{from{color:red;box-shadow:0 0 20px red;transform:translate3d(0, -20px, 0);}to{color:lime;box-shadow:0 0 20px lime;transform:translate3d(0, 20px, -100px);}}"
+        var r = "@-webkit-keyframes atest{from{color:red;box-shadow:0 0 20px red;transform:translate3d(0, -20px, 0);}to{color:lime;box-shadow:0 0 20px lime;transform:translate3d(0, 20px, -100px);}}"
         expect(result).to.equal(r)
     })
 });
@@ -102,7 +102,7 @@ describe("Keyframes (percantages)", function() {
 
     var props, result
     props = {
-        '@keyframes anim-test': {
+        '@-webkit-keyframes anim-test': {
             "0%": {
                 color: 'red'
             },
@@ -116,7 +116,7 @@ describe("Keyframes (percantages)", function() {
     }
     result = Syringe.inject(props)
     it("should also be supported defined in percentage format", function() {
-        var r = "@keyframes anim-test{0%{color:red;}50%{color:lime;}100%{color:lime;}}"
+        var r = "@-webkit-keyframes anim-test{0%{color:red;}50%{color:lime;}100%{color:lime;}}"
         expect(result).to.equal(r)
     })
 })

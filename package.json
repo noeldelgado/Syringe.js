@@ -1,6 +1,6 @@
 {
   "name": "Syringe.js",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Injects CSS via JS",
   "main": "Gruntfile.js",
   "repository": {
