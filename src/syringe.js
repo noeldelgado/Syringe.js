@@ -23,7 +23,7 @@ Syringe = {
         if (self._styleElement === null) {
             self._styleElement = document.createElement('style');
             self._styleElement.setAttribute("type", "text/css");
-            document.body.appendChild(self._styleElement);
+            document.getElementsByTagName("head")[0].appendChild(self._styleElement);
         }
 
         iterate = function iterate(obj) {
@@ -59,7 +59,8 @@ Syringe = {
 
         iterate(options);
 
-        self._styleElement.innerHTML += CSString;
+        if (self._styleElement.styleSheet) self._styleElement.styleSheet.cssText += CSString;
+        else self._styleElement.appendChild(document.createTextNode(CSString));
 
         return CSString;
     },
