@@ -12,6 +12,10 @@ module.exports = function(grunt) {
                 options: {
                     livereload: true
                 }
+            },
+            newBuild: {
+                files: ["package.json"],
+                tasks: ["uglify"]
             }
         },
 
