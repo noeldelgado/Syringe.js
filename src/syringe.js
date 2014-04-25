@@ -7,14 +7,252 @@
             prefixedProperties : null
         },
 
-        _style : null,
-        _buffer : {
-            selectors : [],
-            blocks : [],
+        style       : null,
+        sheet       : null,
+        rules       : null,
+        buffer      : {},
+        _level      : 0,
+
+        inject : function inject(options) {
+            // Reset variables for iteration
+            this._level = 0;
+            this.buffer.selectors  = [];
+            this.buffer.blocks     = [];
+
+            // Handle rules to be injected
+            this._iterate(options);
+
+            // Inject rules
+            return this._insertRules();
         },
 
-        _reCamelCase : new RegExp("[A-Z]"),
-        _reKeyframe : new RegExp("@keyframes(.+)"),
+        removeAll : function removeAll() {
+            while (this.rules.length) {
+                this.sheet.deleteRule(this.rules.length - 1);
+            }
+        },
+
+        remove : function remove(selector) {
+            var rules, rulesLength, selectorsLength, j;
+
+            if (!selector) {
+                return false;
+            }
+
+            rules           = this.rules;
+            rulesLength     = rules.length;
+            selectorsLength = selector.length;
+
+            if (typeof selector === "string") {
+                while (rulesLength--) {
+                    this._deleteRule(rules[rulesLength], rulesLength, selector);
+                }
+            }
+
+            if (selector instanceof Array) {
+                while (rulesLength--) {
+                    for (j = 0; j < selectorsLength; j++) {
+                        this._deleteRule(rules[rulesLength], rulesLength, selector[j]);
+                    }
+                }
+            }
+        },
+
+        _deleteRule : function _deleteRule(rule, index, selector) {
+            var isKeyframe, isAtRule, isMedia, selectorNoSpaces;
+
+            isKeyframe  = this._re.keyframe.exec(selector);
+            isAtRule    = this._re.atRule.exec(selector);
+            isMedia     = this._re.media.exec(selector);
+
+            if (rule.type === 1 && (rule.selectorText === selector)) { // CSSRule.STYLE_RULE
+                this.sheet.deleteRule(index);
+            } else if (rule.type === 3 && isAtRule) { // CSSRule.IMPORT_RULE
+                if (rule.href === isAtRule[1]) {
+                    this.sheet.deleteRule(index);
+                }
+            } else if (rule.type === 4 && isMedia) { // CSSRule.MEDIA_RULE
+                selectorNoSpaces = selector.replace(/\s/g, '');
+                if (rule.cssText.replace(/\s/g, '').substring(0, selectorNoSpaces.length) === selectorNoSpaces) {
+                    this.sheet.deleteRule(index);
+                }
+            } else if (rule.type === 7 && isKeyframe) { // CSSRule.KEYFRAMES_RULE
+                if (rule.name === isKeyframe[2]) {
+                    this.sheet.deleteRule(index);
+                }
+            }
+        },
+
+        _iterate : function iterate(obj) {
+            var selector, lastSelector, property;
+
+            for (selector in obj) {
+                if (obj.hasOwnProperty(selector)) {
+                    lastSelector = this.buffer.selectors.length - 1;
+
+                    if (typeof obj[selector] === "object") {
+                        // Handle rule blocks
+                        this._level++;
+
+                        if (this._level === 1) {
+                            this.buffer.selectors.push(selector);
+                            lastSelector = this.buffer.selectors.length - 1;
+                        } else {
+                            this._addToBlock(lastSelector, selector + "{");
+                        }
+
+                        if (this._isEmptyObject(obj[selector])) {
+                            this._level--;
+                            this.buffer.blocks[lastSelector] = "";
+                        } else {
+                            this._iterate(obj[selector]);
+
+                            if (this._level > 1) {
+                                this.buffer.blocks[lastSelector] += "}";
+                            }
+
+                            this._level--;
+                        }
+                    } else {
+                        // handle declarations
+                        property = selector;
+
+                        if (this._re.camelCase.test(selector) === true) {
+                            property = this._toDash(selector);
+                        }
+
+                        if (this.config.prefixedProperties) {
+                            if (lastSelector < 0) { // empty ruleset, special case for @import rule
+                                lastSelector = 0;
+                                this.buffer.selectors.push("");
+                            }
+                            this._addToBlock(lastSelector, this._getPrefixedDeclarations(property, obj[selector]));
+                        } else {
+                            this._addToBlock(lastSelector, this._getDeclaration(property, obj[selector]));
+                        }
+                    }
+                }
+            }
+        },
+
+        _insertRules : function _insertRules() {
+            var i, blocksLength, rulesLength, result, selector, block,isKeyframe, keyframeName;
+
+            blocksLength    = this.buffer.blocks.length;
+            rulesLength     = this.rules.length;
+            result          = "";
+
+            for (i = 0; i < blocksLength; i++) {
+                selector    = this.buffer.selectors[i];
+                block       = this.buffer.blocks[i];
+                isKeyframe  = this._re.keyframe.exec(selector);
+                keyframeName= "";
+
+                // @import at-rule
+                if (selector === "") {
+                    result += block;
+
+                    if (this.style.sheet.insertRule) {
+                        this.sheet.insertRule(block, rulesLength);
+                    } else if (this.sheet.addImport) { // IE8-
+                        this.sheet.addImport(this._re.atRule.exec(block)[1]);
+                    }
+
+                    continue;
+                }
+
+                // @keyframes
+                if (isKeyframe) {
+                    keyframeName = " " + isKeyframe[2];
+                    if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
+                        selector = "@-webkit-keyframes" + keyframeName;
+                    } else if (CSSRule.MOZ_KEYFRAMES_RULE) {
+                        selector = "@-moz-keyframes" + keyframeName;
+                    } else if (CSSRule.KEYFRAMES_RULE) {
+                        selector = "@keyframes" + keyframeName;
+                    }
+                }
+
+                if (this.sheet.insertRule) {
+                    this.sheet.insertRule(selector + "{" + block + "}", rulesLength);
+                } else {
+                    this.sheet.addRule(selector, block, 0);
+                }
+
+                result += selector + "{" + block + "}";
+                selector = block = isKeyframe = keyframeName = null;
+            }
+
+            return result;
+        },
+
+        _addToBlock : function _addToBlock(index, value) {
+            if (this.buffer.blocks[index] === undefined) {
+                this.buffer.blocks[index] = "";
+            }
+
+            this.buffer.blocks[index] += value;
+        },
+
+        _getDeclaration : function _getDeclaration(property, value) {
+            var declaration;
+
+            if (property === "@import") {
+                declaration = (property + " " + value);
+            } else {
+                declaration = (property + ":" + value);
+            }
+
+            return declaration + ";";
+        },
+
+        _getPrefixedDeclarations : function _getPrefixedDeclarations(property, value) {
+            var result, index, prefixedProps, prefixedPropsLength;
+
+            if (this.config.prefixedProperties[property]) {
+                result                  = "";
+                prefixedProps           = this._getPrefixedSelector(property);
+                prefixedPropsLength     = prefixedProps.length;
+
+                for (index = 0; index < prefixedPropsLength; index++) {
+                    result += this._getDeclaration(prefixedProps[index], value);
+                }
+
+                return result;
+            };
+
+            return this._getDeclaration(property, value);
+        },
+
+        _getPrefixedSelector : function _getPrefixedSelector(selector) {
+            var index, result, prefixes, prefixesLength;
+
+            result          = [];
+            prefixes        = this.config.prefixedProperties[selector];
+            prefixesLength  = prefixes.length;
+
+            for (index = 0; index < prefixesLength; index++) {
+                result.push('-' + prefixes[index] + '-' + selector);
+            }
+
+            result.push(selector);
+
+            return result;
+        },
+
+        _re : {
+            camelCase   : new RegExp("[A-Z]\\w+"),
+            keyframe    : new RegExp("@(.*)?keyframes (.*)"),
+            atRule      : new RegExp("@import url\\((.*)\\)"),
+            media       : new RegExp("@media")
+        },
+
+        _toDash : function _toDash(string) {
+            return string.replace(/([A-Z])/g, function(letter) {
+                return '-' + letter.toLowerCase();
+            });
+        },
+
         _isEmptyObject : function _isEmptyObject(obj) {
             for (var prop in obj) {
                 if (obj.hasOwnProperty(prop)) {
@@ -24,159 +262,18 @@
             return true;
         },
 
-        inject : function inject(options) {
-            var self, level, iterate;
-
-            self    = this;
-            level   = 0;
-
-            self._buffer.selectors  = [];
-            self._buffer.blocks     = [];
-
-            if (self._style === null) {
-                self._style = document.createElement('style');
-                self._style.setAttribute("type", "text/css");
-                self._style.appendChild(document.createTextNode(""));
-                document.getElementsByTagName("head")[0].appendChild(self._style);
+        _createStyleSheet : function _createStyleSheet() {
+            if (this.style === null) {
+                this.style = document.createElement('style');
+                this.style.setAttribute("type", "text/css");
+                this.style.appendChild(document.createTextNode(""));
+                document.getElementsByTagName("head")[0].appendChild(this.style);
+                this.sheet = this.style.sheet || this.style.styleSheet;
+                this.rules = this.sheet.cssRules || this.sheet.rules;
             }
-
-            iterate = function iterate(obj) {
-                var selector, lastSelector, property;
-
-                for (selector in obj) {
-                    if (obj.hasOwnProperty(selector)) {
-                        lastSelector = self._buffer.selectors.length - 1;
-                        if (typeof obj[selector] === "object") {
-                            level++;
-                            if (level === 1) {
-                                self._buffer.selectors.push(selector);
-                                lastSelector = self._buffer.selectors.length - 1;
-                            } else self._addToBlock(lastSelector, selector + "{");
-
-                            if (self._isEmptyObject(obj[selector])) {
-                                level--;
-                                if (level > 1) self._buffer.blocks[lastSelector] += "}";
-                                else self._buffer.blocks[lastSelector] = "";
-                            } else {
-                                iterate(obj[selector]);
-                                if (level > 1) self._buffer.blocks[lastSelector] += "}";
-                                level--;
-                            }
-                        } else {
-                            property = selector;
-
-                            if (self._reCamelCase.test(selector) === true) {
-                                property = self._toDash(selector);
-                            }
-
-                            if (self.config.prefixedProperties) {
-                                if (lastSelector < 0) {
-                                    lastSelector = 0;
-                                    self._buffer.selectors.push("");
-                                }
-                                self._addToBlock(lastSelector, self._getPrefixedDeclarations(property, obj[selector]))
-                            } else self._addToBlock(lastSelector, self._formattedDeclaration(property, obj[selector]))
-                        }
-                    }
-                }
-            };
-
-            iterate(options);
-            return self._insert();
         },
-
-        _insert : function _insert() {
-            var self, i, iterations, CSString;
-
-            self        = this;
-            iterations  = self._buffer.blocks.length;
-            CSString    = "";
-
-            for (i = 0; i < iterations; i++) {
-                var selector    = self._buffer.selectors[i],
-                    block       = self._buffer.blocks[i],
-                    string      = "",
-                    rulesLength = self._style.sheet.cssRules.length,
-                    isKeyframe  = self._reKeyframe.exec(selector),
-                    keyFrameName= "";
-
-                if (selector === "") { // at-rule
-                    string = selector + block;
-                    CSString += string;
-                    self._style.sheet.insertRule(string, rulesLength);
-                } else {
-                    if (isKeyframe) {
-                        keyFrameName = isKeyframe[1];
-                        if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
-                            selector = "@-webkit-keyframes" + keyFrameName;
-                        } else if (CSSRule.MOZ_KEYFRAMES_RULE) {
-                            selector = "@-moz-keyframes" + keyFrameName;
-                        } else if (CSSRule.KEYFRAMES_RULE) {
-                            selector = "@keyframes" + keyFrameName;
-                        }
-                    }
-
-                    if (self._style.sheet.insertRule) {
-                        CSString += selector + "{" + block + "}";
-                        self._style.sheet.insertRule(selector + "{" + block + "}", rulesLength);
-                    } else {
-                        self._style.sheet.addRule(selector, block, 1);
-                    }
-                }
-            }
-
-            return CSString;
-        },
-
-        _addToBlock : function _addToBlock(index, value) {
-            if (this._buffer.blocks[index] === undefined) this._buffer.blocks[index] = "";
-            this._buffer.blocks[index] += value;
-        },
-
-        _formattedDeclaration : function _formattedDeclaration(property, value) {
-            var isAtRule    = (property === "@import"),
-                declaration = (isAtRule) ? (property + " " + value) : (property + ":" + value);
-            return declaration + ";";
-        },
-
-        _toDash : function _toDash(string) {
-            return string.replace(/([A-Z])/g, function(letter) {
-                return '-' + letter.toLowerCase();
-            });
-        },
-
-        _getPrefixedDeclarations : function _getPrefixedDeclarations(property, value) {
-            var result, index, prefixed_properties, prefixed_properties_length;
-
-            if (this.config.prefixedProperties[property]) {
-                result = "";
-                prefixed_properties = this._getPrefixedSelector(property);
-                prefixed_properties_length = prefixed_properties.length;
-
-                for (index = 0; index < prefixed_properties_length; index +=1) {
-                    result += this._formattedDeclaration(prefixed_properties[index], value);
-                }
-
-                return result;
-            };
-
-            return this._formattedDeclaration(property, value);
-        },
-
-        _getPrefixedSelector : function _getPrefixedSelector(selector) {
-            var index, result, prefixes, prefixes_length;
-
-            result = [];
-            prefixes = this.config.prefixedProperties[selector];
-            prefixes_length = prefixes.length;
-
-            for (index = 0; index < prefixes_length; index += 1) {
-                result.push('-' + prefixes[index] + '-' + selector);
-            }
-
-            result.push(selector);
-
-            return result;
-        }
     };
+
+    Syringe._createStyleSheet();
+
 })();
