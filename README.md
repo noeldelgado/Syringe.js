@@ -1,15 +1,20 @@
-# Syringe.js
+# Syringe
 
 * Injects CSS at runtime
-* Supports JSON format
-* @import at-rule
-* Media Queries
-* @keyframes
-* Prefixes (optional)
+* Remove CSS added via Syringe
+* Supports:
+    * @keyframes (auto-prefixed)
+    * Prefixed properties (on demand)
+    * Media Queries
+    * Pseudo-elements and pseudo-classes
+    * @import at-rule
+    * JSON format
 
-## Usage Examples
+## Dependencies
+None
 
-## Basic
+## Usage
+### Syringe.inject()
 ```js
 var props = {
     body: {
@@ -25,7 +30,124 @@ var props = {
 Syringe.inject(props);
 ```
 
-## Pseudo-elements, pseudo-classes
+### Syringe.remove()
+```js
+Syringe.remove("header");               // single selector
+Syringe.remove(["header", "body"]);     // multiple selectors at once
+```
+
+### Syringe.removeAll()
+```js
+Syringe.removeAll()                     // remove all styles injected via Syringe
+```
+
+## More Examples
+
+### @keyframes
+No need to declare the prefixed versions for `@keyframes`. Syringe will check which one is suported by the browser and inject that.
+
+If you want to prefix any other property, you need to specify which ones and which prefixes you want to be applied, more on how to do this below.
+```js
+var props = {
+    '@keyframes anim-test': {
+        from: {
+            color: 'red',
+            boxShadow: "0 0 20px red",
+            transform: 'translate3d(0, -20px, 0)'
+        },
+        to: {
+            color: 'lime',
+            boxShadow: "0 0 20px lime",
+            transform: 'translate3d(0, 20px, -100px)'
+        }
+    },
+    'h1': {
+        animation: 'anim-test 2s ease 0s infinite alternate forwards'
+    }
+};
+
+Syringe.inject(props);
+```
+
+#### @keyframes (remove)
+```js
+Syringe.remove(["@keyframes anim-test"]);
+```
+
+### Prefixed Properties
+
+Non-support by default, however you can define what properties and which prefixes to apply, just extend `Syringe.config.prefixedProperties` before injection.
+
+Example:
+
+```js
+Syringe.config.prefixedProperties = {
+    'perspective'    : ['webkit'],
+    'transform-style': ['webkit', 'ms'],
+    'animation'      : ['webkit'],
+    'transform'      : ['webkit', 'moz', 'ms', 'o']
+};
+```
+
+```js
+var props = {
+    'body': {
+        perspective: '1000px',
+        transformStyle: 'preserve-3d',
+        animation: 'animation-test 2s ease 0 0'
+    },
+    'h1': {
+        transform: 'translate3d(0, 0, -1000px)'
+    }
+};
+
+Syringe.inject(props);
+```
+
+That will inject:
+
+```css
+body {
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
+    -webkit-transform-style: preserve-3d;
+    -ms-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-animation: animation-test 2s ease 0 0;
+    animation: animation-test 2s ease 0 0;
+}
+h1{
+    -webkit-transform: translate3d(0, 0, -1000px);
+    -moz-transform: translate3d(0, 0, -1000px);
+    -ms-transform: translate3d(0, 0, -1000px);
+    -o-transform: translate3d(0, 0, -1000px);
+    transform: translate3d(0, 0, -1000px);
+}
+ ```
+
+### Media Queries
+```js
+var props = {
+    "@media screen" : {
+        "*" : {
+            fontFamily: "sans-serif"
+        }
+    },
+    "@media all and (min-width: 500px)": {
+        "body": {
+            "background": "lime"
+        }
+    }
+};
+Syringe.inject(props);
+```
+
+#### Media Queries (remove)
+```js
+Syringe.remove("@media screen");
+```
+
+### Pseudo-elements, pseudo-classes
 ```js
 var props = {
     'a': {
@@ -48,120 +170,18 @@ var props = {
 */
 ```
 
-## @import
+### @import
 As the [spec](http://www.w3.org/TR/CSS2/cascade.html#at-import) says:
 > ...any @import rules must precede all other rules (except the @charset rule, if present)...
 
 ```js
 var props = {
-    "@import": "url(style2.css)"
+    "@import": "url(style.css)"
 };
 Syringe.inject(props);
 ```
 
-## JSON Format
+#### @import (remove)
 ```js
-var props = JSON.stringify({
-    "body": {
-        "color": "red"
-    },
-    "body:after": {
-        "content": "'hello'"
-    }
-});
-Syringe.inject(JSON.parse(props));
+Syringe.remove("@import url(style.css)");
 ```
-
-## Media Queries
-```js
-var props = {
-    "@media screen" : {
-        "*" : {
-            fontFamily: "sans-serif"
-        }
-    },
-    "@media all and (min-width: 500px)": {
-        "body": {
-            "background": "lime"
-        }
-    }
-};
-Syringe.inject(props);
-```
-
-## @keyframes
-```js
-var props = {
-    '@keyframes anim-test': {
-        from: {
-            color: 'red',
-            boxShadow: "0 0 20px red",
-            transform: 'translate3d(0, -20px, 0)'
-        },
-        to: {
-            color: 'lime',
-            boxShadow: "0 0 20px lime",
-            transform: 'translate3d(0, 20px, -100px)'
-        }
-    },
-    'h1': {
-        position: 'relative',
-        borderRadius: '10px',
-        background: '#222',
-        padding: '10px 20px',
-        animation: 'anim-test 2s ease 0 infinite alternate forwards'
-    }
-};
-
-Syringe.inject(props);
-```
-
-
-## -prefixes?
-
-Non-support by default, however you can define what properties and which prefixes to apply, just extend `Syringe.config.prefixedProperties`  before injection:
-
-```js
-Syringe.config.prefixedProperties = {
-    'transform'     : ['webkit', 'moz', 'ms', 'o'],
-    'perspective'   : ['webkit'],
-    'animation'     : ['webkit'],
-    'transform-style': ['webkit', 'ms'],
-};
-```
-
-```js
-var props = {
-    'body': {
-        perspective: '1000px',
-        transformStyle: 'preserve-3d',
-        animation: 'animation-test 2s ease 0 0'
-    },
-    'h1': {
-        transform: 'translate3d(0, 0, -1000px)'
-    }
-};
-
-Syringe.inject(props);
-```
-
-That will produce:
-
-```css
-body{
-    -webkit-perspective: 1000px;
-    perspective: 1000px;
-    -webkit-transform-style: preserve-3d;
-    -ms-transform-style: preserve-3d;
-    transform-style: preserve-3d;
-    -webkit-animation: animation-test 2s ease 0 0;
-    animation: animation-test 2s ease 0 0;
-}
-h1{
-    -webkit-transform: translate3d(0, 0, -1000px);
-    -moz-transform: translate3d(0, 0, -1000px);
-    -ms-transform: translate3d(0, 0, -1000px);
-    -o-transform: translate3d(0, 0, -1000px);
-    transform: translate3d(0, 0, -1000px);
-}
- ```
