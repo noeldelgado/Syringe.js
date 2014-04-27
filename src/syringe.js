@@ -223,11 +223,11 @@
 
                 // media querie, IE8 validation
                 if (isMedia) {
-                    if (window.matchMedia === undefined && window.msMatchMedia === undefined) {
+                    if ((window.matchMedia === undefined && window.msMatchMedia === undefined) &&
+                        (window.styleMedia === undefined && window.media === undefined)) {
                         selector = "";
                     }
                 }
-
 
                 if (selector && block) {
                     if (this.sheet.insertRule) {
