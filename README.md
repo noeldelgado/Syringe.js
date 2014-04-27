@@ -10,6 +10,8 @@
     * @import at-rule
     * JSON format
 
+**Tested on:** IE8+, Chrome, Firefox, Safari and Opera.
+
 ## Dependencies
 None
 

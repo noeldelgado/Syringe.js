@@ -14,6 +14,10 @@
         _level      : 0,
 
         inject : function inject(options) {
+            if (this.style === null) {
+                Syringe._createStyleSheet();
+            }
+
             // Reset variables for iteration
             this._level = 0;
             this.buffer.selectors  = [];
@@ -28,8 +32,21 @@
 
         removeAll : function removeAll() {
             while (this.rules.length) {
-                this.sheet.deleteRule(this.rules.length - 1);
+                if (this.sheet.deleteRule) {
+                    this.sheet.deleteRule(this.rules.length - 1);
+                } else {
+                    this.sheet.removeRule(this.rules.length - 1);
+                }
             }
+
+            // IE8 at-rule
+            if (this.sheet.imports) {
+                while(this.sheet.imports.length) {
+                    this.sheet.removeImport(this.sheet.imports.length - 1);
+                }
+            }
+
+            this._removeStyleSheet();
         },
 
         remove : function remove(selector) {
@@ -56,29 +73,53 @@
                     }
                 }
             }
+
+            if (this.rules.length === 0) {
+                this._removeStyleSheet();
+            }
         },
 
         _deleteRule : function _deleteRule(rule, index, selector) {
-            var isKeyframe, isAtRule, isMedia, selectorNoSpaces;
+            var isKeyframe, isAtRule, isMedia, selectorNoSpaces, isAtRule;
 
-            isKeyframe  = this._re.keyframe.exec(selector);
-            isAtRule    = this._re.atRule.exec(selector);
-            isMedia     = this._re.media.exec(selector);
+            if (rule) {
+                if (this.sheet.deleteRule) {
+                    isKeyframe  = this._re.keyframe.exec(selector);
+                    isAtRule    = this._re.atRule.exec(selector);
+                    isMedia     = this._re.media.exec(selector);
 
-            if (rule.type === 1 && (rule.selectorText === selector)) { // CSSRule.STYLE_RULE
-                this.sheet.deleteRule(index);
-            } else if (rule.type === 3 && isAtRule) { // CSSRule.IMPORT_RULE
-                if (rule.href === isAtRule[1]) {
-                    this.sheet.deleteRule(index);
-                }
-            } else if (rule.type === 4 && isMedia) { // CSSRule.MEDIA_RULE
-                selectorNoSpaces = selector.replace(/\s/g, '');
-                if (rule.cssText.replace(/\s/g, '').substring(0, selectorNoSpaces.length) === selectorNoSpaces) {
-                    this.sheet.deleteRule(index);
-                }
-            } else if (rule.type === 7 && isKeyframe) { // CSSRule.KEYFRAMES_RULE
-                if (rule.name === isKeyframe[2]) {
-                    this.sheet.deleteRule(index);
+                    if (rule.type === 1 && (rule.selectorText === selector)) { // CSSRule.STYLE_RULE
+                        this.sheet.deleteRule(index);
+                    } else if (rule.type === 3 && isAtRule) { // CSSRule.IMPORT_RULE
+                        if (rule.href === isAtRule[1]) {
+                            this.sheet.deleteRule(index);
+                        }
+                    } else if (rule.type === 4 && isMedia) { // CSSRule.MEDIA_RULE
+                        selectorNoSpaces = selector.replace(/\s/g, '');
+                        if (rule.cssText.replace(/\s/g, '').substring(0, selectorNoSpaces.length) === selectorNoSpaces) {
+                            this.sheet.deleteRule(index);
+                        }
+                    } else if (rule.type === 7 && isKeyframe) { // CSSRule.KEYFRAMES_RULE
+                        if (rule.name === isKeyframe[2]) {
+                            this.sheet.deleteRule(index);
+                        }
+                    }
+                } else {
+                    // IE-8
+                    if (rule.selectorText.toLowerCase() === selector) {
+                        this.sheet.removeRule(index);
+                    } else {
+                        isAtRule = this._re.atRule.exec(selector);
+                        if (isAtRule) {
+                            if (this.sheet.imports) {
+                                for (var i = 0; i< this.sheet.imports.length; i++) {
+                                    if (this.sheet.imports[i].href.indexOf(isAtRule[1]) > 0) {
+                                        this.sheet.removeImport(i);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -136,7 +177,7 @@
         },
 
         _insertRules : function _insertRules() {
-            var i, blocksLength, rulesLength, result, selector, block,isKeyframe, keyframeName;
+            var i, blocksLength, rulesLength, result, selector, block, isMedia, isKeyframe, keyframeName;
 
             blocksLength    = this.buffer.blocks.length;
             rulesLength     = this.rules.length;
@@ -145,6 +186,7 @@
             for (i = 0; i < blocksLength; i++) {
                 selector    = this.buffer.selectors[i];
                 block       = this.buffer.blocks[i];
+                isMedia     = this._re.media.exec(selector);
                 isKeyframe  = this._re.keyframe.exec(selector);
                 keyframeName= "";
 
@@ -152,7 +194,7 @@
                 if (selector === "") {
                     result += block;
 
-                    if (this.style.sheet.insertRule) {
+                    if (this.sheet.insertRule) {
                         this.sheet.insertRule(block, rulesLength);
                     } else if (this.sheet.addImport) { // IE8-
                         this.sheet.addImport(this._re.atRule.exec(block)[1]);
@@ -164,19 +206,35 @@
                 // @keyframes
                 if (isKeyframe) {
                     keyframeName = " " + isKeyframe[2];
-                    if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
-                        selector = "@-webkit-keyframes" + keyframeName;
-                    } else if (CSSRule.MOZ_KEYFRAMES_RULE) {
-                        selector = "@-moz-keyframes" + keyframeName;
-                    } else if (CSSRule.KEYFRAMES_RULE) {
-                        selector = "@keyframes" + keyframeName;
+                    if (!!window.CSSRule) {
+                        if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
+                            selector = "@-webkit-keyframes" + keyframeName;
+                        } else if (CSSRule.MOZ_KEYFRAMES_RULE) {
+                            selector = "@-moz-keyframes" + keyframeName;
+                        } else if (CSSRule.KEYFRAMES_RULE) {
+                            selector = "@keyframes" + keyframeName;
+                        } else {
+                            selector = "";
+                        }
+                    } else {
+                        selector = "";
                     }
                 }
 
-                if (this.sheet.insertRule) {
-                    this.sheet.insertRule(selector + "{" + block + "}", rulesLength);
-                } else {
-                    this.sheet.addRule(selector, block, 0);
+                // media querie, IE8 validation
+                if (isMedia) {
+                    if (window.matchMedia === undefined && window.msMatchMedia === undefined) {
+                        selector = "";
+                    }
+                }
+
+
+                if (selector && block) {
+                    if (this.sheet.insertRule) {
+                        this.sheet.insertRule(selector + "{" + block + "}", rulesLength);
+                    } else {
+                        this.sheet.addRule(selector, block, 0);
+                    }
                 }
 
                 result += selector + "{" + block + "}";
@@ -262,18 +320,28 @@
             return true;
         },
 
-        _createStyleSheet : function _createStyleSheet() {
-            if (this.style === null) {
-                this.style = document.createElement('style');
-                this.style.setAttribute("type", "text/css");
-                this.style.appendChild(document.createTextNode(""));
-                document.getElementsByTagName("head")[0].appendChild(this.style);
-                this.sheet = this.style.sheet || this.style.styleSheet;
-                this.rules = this.sheet.cssRules || this.sheet.rules;
-            }
+        _removeStyleSheet : function _removeStyleSheet() {
+            // The complete style element must be deleted to
+            // update the style settings in Firefox and Opera
+            this.style.parentNode.removeChild(this.style);
+            this.style = null;
         },
-    };
 
-    Syringe._createStyleSheet();
+        _createStyleSheet : function _createStyleSheet() {
+            this.style = document.createElement('style');
+            this.style.setAttribute("type", "text/css");
+            document.getElementsByTagName("head")[0].appendChild(this.style);
+            if (this.style.sheet === undefined) {
+                this.sheet = this.style.styleSheet;
+            } else {
+                this.sheet = this.style.sheet;
+            }
+            if (this.sheet.cssRules) {
+                this.rules = this.sheet.cssRules;
+            } else {
+                this.rules = this.sheet.rules;
+            }
+        }
+    };
 
 })();
