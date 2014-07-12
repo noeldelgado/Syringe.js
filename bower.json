@@ -1,0 +1,11 @@
+{
+  "name": "syringe.js",
+  "version": "0.3.4",
+  "main": "dist/syringe.min.js",
+  "ignore": [
+    "src",
+    "test",
+    "Gruntfile.js",
+    "package.json"
+  ]
+}
