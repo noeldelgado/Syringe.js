@@ -21,6 +21,10 @@ None
 
 Just download [syringe.min.js](https://raw.githubusercontent.com/noeldelgado/Syringe/master/dist/syringe.min.js) and add it to your env.
 
+### Bower
+
+`bower install syringe.js`
+
 ## Usage
 ### Syringe.inject()
 ```js
