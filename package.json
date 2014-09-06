@@ -1,6 +1,6 @@
 {
   "name": "Syringe.js",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Injects additional CSS at runtime",
   "main": "Gruntfile.js",
   "repository": {
@@ -27,5 +27,8 @@
     "load-grunt-tasks": "^0.4.0",
     "grunt-contrib-uglify": "^0.4.0",
     "grunt-mocha-phantomjs": "^0.4.3"
+  },
+  "scripts": {
+    "test": "grunt test"
   }
 }
