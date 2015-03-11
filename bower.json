@@ -1,6 +1,6 @@
 {
   "name": "syringe.js",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "main": "dist/syringe.min.js",
   "ignore": [
     "**/.*",

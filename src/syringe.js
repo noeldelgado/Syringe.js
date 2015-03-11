@@ -2,7 +2,7 @@
 
     "use strict";
 
-    window.Syringe = {
+    var Syringe = {
         config : {
             prefixedProperties : null
         },
@@ -344,4 +344,7 @@
         }
     };
 
+    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+        module.exports = Syringe;
+    } else window.Syringe = Syringe;
 })();
