@@ -5,7 +5,7 @@
   "main": "dist/syringe.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/noeldelgado/Syringe.git"
+    "url": "https://github.com/noeldelgado/Syringe.js.git"
   },
   "keywords": [
     "injection",
@@ -14,9 +14,9 @@
   "author": "Noel Delgado (pixelia.me@gmail.com)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/noeldelgado/Syringe/issues"
+    "url": "https://github.com/noeldelgado/Syringe.js/issues"
   },
-  "homepage": "https://github.com/noeldelgado/Syringe",
+  "homepage": "https://github.com/noeldelgado/Syringe.js",
   "dependencies": {},
   "devDependencies": {
     "chai": "^2.1.1",
