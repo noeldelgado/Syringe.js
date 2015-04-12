@@ -2,7 +2,7 @@
   "name": "syringe.js",
   "version": "0.3.6",
   "description": "Injects additional CSS at runtime",
-  "main": "dist/syringe.js",
+  "main": "src/syringe.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/noeldelgado/Syringe.js.git"

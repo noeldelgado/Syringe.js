@@ -1,4 +1,6 @@
 # Syringe
+[![npm-image](https://img.shields.io/npm/v/syringe.js.svg?style=flat-square)](https://www.npmjs.com/package/syringe.js)
+![bower-image](https://img.shields.io/bower/v/syringe.js.svg?style=flat-square)
 
 * Injects CSS at runtime
 * Remove CSS added via Syringe
@@ -17,17 +19,23 @@ None
 
 ## Installation
 
-### Browser
+**Browser**
 
 Just download [syringe.min.js](https://raw.githubusercontent.com/noeldelgado/Syringe/master/dist/syringe.min.js) and add it to your env.
 
-### Bower
+**NPM**
 
-`bower install syringe.js`
+`npm install sytinge.js --save`
+
+**Bower**
+
+`bower install syringe.js --save`
 
 ## Usage
 ### Syringe.inject()
 ```js
+// var Syringe = require('syringe.js')
+
 var props = {
     body: {
         background: '#222',
