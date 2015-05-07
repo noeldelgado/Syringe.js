@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
 
-    require('load-grunt-tasks')(grunt, {scope: 'devDependencies'})
+    require('load-grunt-tasks')(grunt, {scope: 'devDependencies'});
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -33,10 +33,10 @@ module.exports = function(grunt) {
             all: ['test/**/*.html']
         }
 
-    })
+    });
 
-   grunt.registerTask('default', ['watch'])
-   grunt.registerTask('test', ['mocha_phantomjs'])
-   grunt.registerTask('dist', ['uglify'])
+   grunt.registerTask('default', ['watch']);
+   grunt.registerTask('test', ['mocha_phantomjs']);
+   grunt.registerTask('dist', ['uglify']);
 
-}
+};

@@ -80,7 +80,7 @@
         },
 
         _deleteRule : function _deleteRule(rule, index, selector) {
-            var isKeyframe, isAtRule, isMedia, selectorNoSpaces, isAtRule;
+            var isKeyframe, isAtRule, isMedia, selectorNoSpaces;
 
             if (rule) {
                 if (this.sheet.deleteRule) {
@@ -277,7 +277,7 @@
                 }
 
                 return result;
-            };
+            }
 
             return this._getDeclaration(property, value);
         },
