@@ -25,7 +25,7 @@ Just download [syringe.min.js](https://raw.githubusercontent.com/noeldelgado/Syr
 
 **NPM**
 
-`npm install sytinge.js --save`
+`npm install syringe.js --save`
 
 **Bower**
 
