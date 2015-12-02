@@ -6,22 +6,17 @@
 * Remove CSS added via Syringe
 * Supports:
     * @keyframes (auto-prefixed)
-    * Prefixed properties (on demand)
-    * Media Queries
-    * Pseudo-elements and pseudo-classes
+    * @media at-rule - Media Queries
+    * @font-face at-rule
     * @import at-rule
+    * Pseudo-elements and pseudo-classes
+    * Prefixed properties (explicit declaration)
     * JSON format
 
 **Tested on:** IE8+, Chrome, Firefox, Safari and Opera.
 
-## Dependencies
-None
 
 ## Installation
-
-**Browser**
-
-Just download [syringe.js](https://raw.githubusercontent.com/noeldelgado/Syringe.js/master/syringe.js) and add it to your env.
 
 **NPM**
 
@@ -31,10 +26,14 @@ Just download [syringe.js](https://raw.githubusercontent.com/noeldelgado/Syringe
 
 `bower install syringe.js --save`
 
+**Browser**
+
+Just download [syringe.js](https://raw.githubusercontent.com/noeldelgado/Syringe.js/master/syringe.js) and add it to your env.
+
 ## Usage
 ### Syringe.inject()
 ```js
-// var Syringe = require('syringe.js')
+var Syringe = require('syringe.js')
 
 var props = {
     body: {
@@ -145,7 +144,7 @@ h1{
 }
  ```
 
-### Media Queries
+### @media (Media Queries)
 ```js
 var props = {
     "@media screen" : {
@@ -165,6 +164,24 @@ Syringe.inject(props);
 #### Media Queries (remove)
 ```js
 Syringe.remove("@media screen");
+```
+
+### @font-face
+```js
+var props = {
+    '@font-face' : {
+        'font-family': '"Bitstream Vera Serif Bold"',
+        'src': 'url("VeraSeBd.ttf")'
+    },
+    'body' : {
+        'font-family': '"Bitstream Vera Serif Bold", serif'
+    }
+};
+Syringe.inject(props);
+
+#### @font-face (remove)
+```js
+Syringe.remove("@font-face");
 ```
 
 ### Pseudo-elements, pseudo-classes

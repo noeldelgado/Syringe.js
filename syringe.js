@@ -1,5 +1,5 @@
 /* syringe.js
- * @version 0.3.7
+ * @version 0.4.0
  * https://github.com/noeldelgado/Syringe.js
  * Licensed under the MIT lincese
  */
@@ -86,13 +86,14 @@
         },
 
         _deleteRule : function _deleteRule(rule, index, selector) {
-            var isKeyframe, isAtRule, isMedia, selectorNoSpaces;
+            var isKeyframe, isAtRule, isMedia, isFontFace, selectorNoSpaces;
 
             if (rule) {
                 if (this.sheet.deleteRule) {
                     isKeyframe  = this._re.keyframe.exec(selector);
                     isAtRule    = this._re.atRule.exec(selector);
                     isMedia     = this._re.media.exec(selector);
+                    isFontFace  = this._re.fontFace.exec(selector);
 
                     if (rule.type === 1 && (rule.selectorText === selector)) { // CSSRule.STYLE_RULE
                         this.sheet.deleteRule(index);
@@ -105,6 +106,8 @@
                         if (rule.cssText.replace(/\s/g, '').substring(0, selectorNoSpaces.length) === selectorNoSpaces) {
                             this.sheet.deleteRule(index);
                         }
+                    } else if (rule.type === 5 && isFontFace) { // CSSFontFaceRule
+                        this.sheet.deleteRule(index);
                     } else if (rule.type === 7 && isKeyframe) { // CSSRule.KEYFRAMES_RULE
                         if (rule.name === isKeyframe[2]) {
                             this.sheet.deleteRule(index);
@@ -213,12 +216,12 @@
                 if (isKeyframe) {
                     keyframeName = " " + isKeyframe[2];
                     if (!!window.CSSRule) {
-                        if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
+                        if (CSSRule.KEYFRAMES_RULE) {
+                            selector = "@keyframes" + keyframeName;
+                        } else if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
                             selector = "@-webkit-keyframes" + keyframeName;
                         } else if (CSSRule.MOZ_KEYFRAMES_RULE) {
                             selector = "@-moz-keyframes" + keyframeName;
-                        } else if (CSSRule.KEYFRAMES_RULE) {
-                            selector = "@keyframes" + keyframeName;
                         } else {
                             selector = "";
                         }
@@ -308,7 +311,8 @@
             camelCase   : new RegExp("[A-Z]\\w+"),
             keyframe    : new RegExp("@(.*)?keyframes (.*)"),
             atRule      : new RegExp("@import url\\((.*)\\)"),
-            media       : new RegExp("@media")
+            media       : new RegExp("@media"),
+            fontFace    : new RegExp("@font-face")
         },
 
         _toDash : function _toDash(string) {

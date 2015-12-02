@@ -1,6 +1,6 @@
 {
   "name": "syringe.js",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "Injects additional CSS at runtime",
   "main": "syringe.js",
   "repository": {

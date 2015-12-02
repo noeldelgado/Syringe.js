@@ -1,4 +1,7 @@
-/* globals Syringe, describe, it, expect */
+/* globals Syringe, describe, it, expect, CSSRule */
+
+var linkElement = document.querySelector('.demo a');
+
 describe("Output", function() {
     var props, result;
     props = {
@@ -24,6 +27,7 @@ describe("CamelCase to Dash", function() {
         }
     },
     result = Syringe.inject(props);
+
     it("should handle camelcase to dash for propertie names", function() {
         expect(result).to.equal("body{font-size:20px;font-family:sans-serif;background-color:rgba(0,0,0,1);}");
     });
@@ -36,6 +40,7 @@ describe("Empty Objects", function() {
         h1 : {color: '#09c'}
     };
     result = Syringe.inject(props);
+
     it("should be present anyway without messing level-deep closing braces", function() {
         expect(result).to.equal("body{}h1{color:#09c;}");
     });
@@ -43,10 +48,10 @@ describe("Empty Objects", function() {
 
 describe("Prefixes", function() {
     Syringe.config.prefixedProperties = {
-        'transform'     : ['webkit', 'moz', 'ms', 'o'],
-        'perspective'   : ['webkit'],
-        'animation'     : ['webkit'],
-        'transform-style': ['webkit', 'ms'],
+        'transform' : ['webkit', 'moz', 'ms', 'o'],
+        'perspective' : ['webkit'],
+        'animation' : ['webkit'],
+        'transform-style': ['webkit', 'ms']
     };
 
     var props, result;
@@ -56,9 +61,7 @@ describe("Prefixes", function() {
             transformStyle: 'preserve-3d',
             animation: 'animation-test 2s ease 0 0'
         },
-        'h1': {
-            transform: 'translate3d(0, 0, -1000px)'
-        }
+        'h1': { transform: 'translate3d(0, 0, -1000px)' }
     };
     result = Syringe.inject(props);
 
@@ -71,49 +74,71 @@ describe("Prefixes", function() {
 describe("Keyframes (from/to)", function() {
     Syringe.config.prefixedProperties = {};
 
-    var props, result;
-    props = {
-        '@-webkit-keyframes atest': {
-            from: {
-                color: 'red',
-                boxShadow: "0 0 20px red",
-                transform: 'translate3d(0, -20px, 0)'
-            },
-            to: {
-                color: 'lime',
-                boxShadow: "0 0 20px lime",
-                transform: 'translate3d(0, 20px, -100px)'
-            }
+    var props, result, atRule;
+    props = {};
+    atRule = '';
+
+    if (!window.CSSRule) {
+        // Keyframes rule not supported
+        return;
+    }
+
+    if (CSSRule.KEYFRAMES_RULE) {
+        atRule = "@keyframes";
+    } else if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
+        atRule = "@-webkit-keyframes";
+    } else if (CSSRule.MOZ_KEYFRAMES_RULE) {
+        atRule = "@-moz-keyframes";
+    }
+
+    props[atRule + ' atest'] = {
+        from: {
+            color: 'red',
+            boxShadow: "0 0 20px red",
+            transform: 'translate3d(0, -20px, 0)'
+        },
+        to: {
+            color: 'lime',
+            boxShadow: "0 0 20px lime",
+            transform: 'translate3d(0, 20px, -100px)'
         }
     };
+
     result = Syringe.inject(props);
-    it("keyframes from to example", function() {
-        var r = "@-webkit-keyframes atest{from{color:red;box-shadow:0 0 20px red;transform:translate3d(0, -20px, 0);}to{color:lime;box-shadow:0 0 20px lime;transform:translate3d(0, 20px, -100px);}}";
-        expect(result).to.equal(r);
+
+    it("should add the keyframes {from, to} for the atest animation", function() {
+        expect(result).to.equal(atRule + " atest{from{color:red;box-shadow:0 0 20px red;transform:translate3d(0, -20px, 0);}to{color:lime;box-shadow:0 0 20px lime;transform:translate3d(0, 20px, -100px);}}");
     });
 });
 
 describe("Keyframes (percantages)", function() {
-    Syringe.config.prefixedProperties = {};
+    var props, result, atRule;
+    props = {};
+    atRule = '';
 
-    var props, result;
-    props = {
-        '@-webkit-keyframes anim-test': {
-            "0%": {
-                color: 'red'
-            },
-            "50%": {
-                color: 'lime'
-            },
-            "100%": {
-                color: 'lime'
-            }
-        }
+    if (!window.CSSRule) {
+        // Keyframes rule not supported
+        return;
+    }
+
+    if (CSSRule.KEYFRAMES_RULE) {
+        atRule = "@keyframes";
+    } else if (CSSRule.WEBKIT_KEYFRAMES_RULE) {
+        atRule = "@-webkit-keyframes";
+    } else if (CSSRule.MOZ_KEYFRAMES_RULE) {
+        atRule = "@-moz-keyframes";
+    }
+
+    props[atRule + ' anim-test'] = {
+        "0%": { color: 'red' },
+        "50%": { color: 'lime' },
+        "100%": { color: 'lime' }
     };
+
     result = Syringe.inject(props);
+
     it("should also be supported defined in percentage format", function() {
-        var r = "@-webkit-keyframes anim-test{0%{color:red;}50%{color:lime;}100%{color:lime;}}";
-        expect(result).to.equal(r);
+        expect(result).to.equal(atRule + " anim-test{0%{color:red;}50%{color:lime;}100%{color:lime;}}");
     });
 });
 
@@ -121,35 +146,27 @@ describe("Media Queries", function() {
     var props, result;
     props = {
         "@media screen" : {
-            "*" : {
-                fontFamily: "sans-serif"
-            }
+            "*" : { fontFamily: "sans-serif" }
         },
         "@media all and (min-width:500px)": {
-            "body": {
-                "background": "white"
-            }
+            "body": { "background": "white" }
         }
     };
     result = Syringe.inject(props);
-    it("should supoprt media queries", function() {
-        var r = "@media screen{*{font-family:sans-serif;}}@media all and (min-width:500px){body{background:white;}}";
-        expect(result).to.equal(r);
+
+    it("should support media queries", function() {
+        expect(result).to.equal("@media screen{*{font-family:sans-serif;}}@media all and (min-width:500px){body{background:white;}}");
     });
 });
 
 describe("Pseudo Class + Pseudo Classes", function() {
-    Syringe.config.prefixedProperties = {};
-
-    var props, result, r;
+    var props, result;
     props = {
         'a': {
             color: "lime",
             transition: 'color 400ms'
         },
-        'a:hover': {
-            color: "red"
-        },
+        'a:hover': { color: "red" },
         'a:after': {
             display: 'inline-block',
             content: '"[/]"',
@@ -157,9 +174,9 @@ describe("Pseudo Class + Pseudo Classes", function() {
         }
     };
     result = Syringe.inject(props);
+
     it("should support pseudo elements and pseudo classes", function() {
-        r = 'a{color:lime;transition:color 400ms;}a:hover{color:red;}a:after{display:inline-block;content:"[/]";margin-left:5px;}';
-        expect(result).to.equal(r);
+        expect(result).to.equal('a{color:lime;transition:color 400ms;}a:hover{color:red;}a:after{display:inline-block;content:"[/]";margin-left:5px;}');
     });
 });
 
@@ -174,14 +191,45 @@ describe("JSON Format", function() {
         }
     });
     result = Syringe.inject(JSON.parse(props));
+
     it("should support JSON input", function() {
         expect(result).to.equal("body{color:red;}body:after{content:'hello';}");
     });
 });
 
+describe("@font-face", function() {
+    Syringe.removeAll();
+
+    var props, result, textWidthWithDefaultFont, textWidthWithNewFont;
+
+    textWidthWithDefaultFont = linkElement.offsetWidth;
+    props = {
+        '@font-face': {
+            'font-family': '"Bitstream Vera Serif Bold"', 'src': 'url("VeraSeBd.ttf")'
+        },
+        'body': { 'font-family': '"Bitstream Vera Serif Bold", sans-serif' }
+    };
+    result = Syringe.inject(props);
+
+    it("should add @font-face rule", function() {
+        expect(result).to.equal('@font-face{font-family:"Bitstream Vera Serif Bold";src:url("VeraSeBd.ttf");}body{font-family:"Bitstream Vera Serif Bold", sans-serif;}');
+    });
+
+    textWidthWithNewFont = linkElement.offsetWidth;
+    it ("should have affect the element width by setting the new font", function() {
+        expect(textWidthWithDefaultFont).to.be.below(textWidthWithNewFont);
+    });
+
+    Syringe.remove('@font-face');
+    it("should remove the @font-face at rule", function() {
+        expect(textWidthWithDefaultFont).to.equal(linkElement.offsetWidth);
+    });
+});
+
 describe("Remove styleSheet", function() {
     Syringe.removeAll();
+
     it("should remove all the injected rules and its styleSheet", function() {
-        expect(Syringe.style).to.equal(null);
+        expect(Syringe.style).to.be.a('null');
     });
 });
