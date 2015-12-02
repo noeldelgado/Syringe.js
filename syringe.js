@@ -1,3 +1,9 @@
+/* syringe.js
+ * @version 0.3.7
+ * https://github.com/noeldelgado/Syringe.js
+ * Licensed under the MIT lincese
+ */
+/* globals CSSRule */
 (function() {
 
     "use strict";
@@ -346,5 +352,5 @@
 
     if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
         module.exports = Syringe;
-    } else window.Syringe = Syringe;
+    } else { window.Syringe = Syringe; }
 })();

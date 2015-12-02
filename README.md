@@ -21,7 +21,7 @@ None
 
 **Browser**
 
-Just download [syringe.min.js](https://raw.githubusercontent.com/noeldelgado/Syringe/master/dist/syringe.min.js) and add it to your env.
+Just download [syringe.js](https://raw.githubusercontent.com/noeldelgado/Syringe.js/master/syringe.js) and add it to your env.
 
 **NPM**
 
