@@ -1,14 +1,17 @@
 /* globals Syringe, describe, it, expect, CSSRule */
+
 var linkElement = document.querySelector('.demo a');
 
 describe("Output", function () {
   var props, result;
+
   props = {
     body: {
       background: '#333',
       color: 'crimson',
     }
-  },
+  };
+
   result = Syringe.inject(props);
 
   it("should be all the css on a single line, without spaces in between and each rule ending with semicolon", function () {
@@ -18,13 +21,15 @@ describe("Output", function () {
 
 describe("CamelCase to Dash", function () {
   var props, result;
+
   props = {
     'body': {
       fontSize: "20px",
       fontFamily: "sans-serif",
       backgroundColor: "rgba(0,0,0,1)"
     }
-  },
+  };
+
   result = Syringe.inject(props);
 
   it("should handle camelcase to dash for propertie names", function () {
@@ -34,10 +39,12 @@ describe("CamelCase to Dash", function () {
 
 describe("Empty Objects", function () {
   var props, result;
+
   props = {
     body: {},
     h1: {color: '#09c'}
   };
+
   result = Syringe.inject(props);
 
   it("should be present anyway without messing level-deep closing braces", function () {
@@ -54,6 +61,7 @@ describe("Prefixes", function () {
   };
 
   var props, result;
+
   props = {
     'body': {
       perspective: '1000px',
@@ -62,6 +70,7 @@ describe("Prefixes", function () {
     },
     'h1': { transform: 'translate3d(0, 0, -1000px)' }
   };
+
   result = Syringe.inject(props);
 
   it("defined prefixes should be applyed", function () {
@@ -143,6 +152,7 @@ describe("Keyframes (percantages)", function () {
 
 describe("Media Queries", function () {
   var props, result;
+
   props = {
     "@media screen" : {
       "*" : { fontFamily: "sans-serif" }
@@ -151,6 +161,7 @@ describe("Media Queries", function () {
       "body": { "background": "white" }
     }
   };
+
   result = Syringe.inject(props);
 
   it("should support media queries", function () {
@@ -160,6 +171,7 @@ describe("Media Queries", function () {
 
 describe("Pseudo Class + Pseudo Classes", function () {
   var props, result;
+
   props = {
     'a': {
       color: "lime",
@@ -172,6 +184,7 @@ describe("Pseudo Class + Pseudo Classes", function () {
       marginLeft: "5px"
     }
   };
+
   result = Syringe.inject(props);
 
   it("should support pseudo elements and pseudo classes", function () {
@@ -181,6 +194,7 @@ describe("Pseudo Class + Pseudo Classes", function () {
 
 describe("JSON Format", function () {
   var props, result;
+
   props = JSON.stringify({
     "body": {
       "color": "red"
@@ -189,6 +203,7 @@ describe("JSON Format", function () {
       "content": "'hello'"
     }
   });
+
   result = Syringe.inject(JSON.parse(props));
 
   it("should support JSON input", function () {
@@ -202,12 +217,14 @@ describe("@font-face", function () {
   var props, result, textWidthWithDefaultFont, textWidthWithNewFont;
 
   textWidthWithDefaultFont = linkElement.offsetWidth;
+
   props = {
     '@font-face': {
       'font-family': '"Bitstream Vera Serif Bold"', 'src': 'url("VeraSeBd.ttf")'
     },
     'body': { 'font-family': '"Bitstream Vera Serif Bold", sans-serif' }
   };
+
   result = Syringe.inject(props);
 
   it("should add @font-face rule", function () {
