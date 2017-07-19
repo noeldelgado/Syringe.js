@@ -18,12 +18,12 @@
   },
   "homepage": "https://github.com/noeldelgado/Syringe.js",
   "devDependencies": {
-    "chai": "^2.1.1",
-    "grunt": "^0.4.4",
-    "grunt-contrib-watch": "^0.6.1",
-    "grunt-mocha-phantomjs": "^0.4.3",
-    "load-grunt-tasks": "^0.4.0",
-    "mocha": "^2.2.1"
+    "chai": "^4.1.0",
+    "grunt": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-mocha-phantomjs": "^4.0.0",
+    "load-grunt-tasks": "^3.5.2",
+    "mocha": "^3.4.2"
   },
   "scripts": {
     "test": "grunt test"
